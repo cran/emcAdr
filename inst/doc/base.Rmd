@@ -1,0 +1,99 @@
+---
+title: "emcAdr : Evolutionary Markov Chain for Adverse Drug Reaction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{emcAdr : Evolutionary Markov Chain for Adverse Drug Reaction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(emcAdr)
+library(gridExtra)
+library(ggplot2)
+```
+
+## Aim 
+
+The general purpose of this package is to detect drug and drug interactions that could be linked to an Adverse Event (AE). The expected data input for the function of this package are the following. 
+
+## Data 
+
+```{r}
+data("ATC_Tree_UpperBound_2024") ## The ATC tree containing the upper bound
+head(ATC_Tree_UpperBound_2024)
+```
+
+```{r}
+data("FAERS_myopathy") ## The Individual Case Safety Reports in the following format
+head(FAERS_myopathy) ## First column is "patientATC" containing vector of index of drug intake for patient at row i in the ATC tree.
+## Second column is "patientADR", value is true if the patient at row i experience the considered AE and false otherwise.
+```
+
+
+## Score distribution estimation
+
+This data enables us to run the MCMC algorithm in order to estimate the score distribution among this dataset of patients.
+
+```{r }
+estimated_distribution_size1_300ksteps_t500 <- DistributionApproximation(10,
+                        ATC_Tree_UpperBound_2024, FAERS_myopathy,
+                        temperature = 500, nbResults = 200,
+                        Smax = 1,num_thread = 8)
+```
+
+Here we estimate the distribution of the score among cocktails of size 1 `(Smax=1)`.
+
+If desired, we can compute the true distribution of score for size 1 and size 2 cocktails. Let's do it for size one cocktails in order to compare our estimation with the truth.
+
+```{r }
+true_distribution_size1 <- trueDistributionDrugs(ATC_Tree_UpperBound_2024, FAERS_myopathy,
+                                beta = 4, num_thread = 8)
+```
+
+## Visualize and compare the results
+
+```{r }
+qq_plot_output(estimated_distribution_size1_300ksteps_t500,
+               true_distribution_size1, filtered = T)
+```
+
+Here is the quantile-quantile plot to compare the estimation vs the true distribution. We can also plot both distribution 
+
+```{r}
+plot_estimated_distribution <- plot_frequency(
+    estimated_distribution_size1_300ksteps_t500$Filtered_score_distribution[2:length(estimated_distribution_size1_300ksteps_t500$Filtered_score_distribution)], binwidth = .3, sqrt = F, xlab = "H(C)") + labs(title = "Estimated distribution of risks among size 1 cocktails") + theme(plot.title = element_text(size=20)) + ylim(c(0,0.35))
+
+plot_true_distribution <- plot_frequency(
+    true_distribution_size1$Filtered_score_distribution[2:length(true_distribution_size1$Filtered_score_distribution)], binwidth = .3, xlab = "H(C)") + labs(title = "True Distribution of Risks among size 1 cocktails") + theme(plot.title = element_text(size=20)) + ylim(c(0,0.35))
+
+grid.arrange(plot_estimated_distribution, plot_true_distribution ,nrow = 2)
+```
+
+## Find cocktails with higher score 
+
+We can apply the genetic algorithm in order to find riskiest drug cocktails.
+
+```{r}
+genetic_algorithm_results <- GeneticAlgorithm(epochs = 20, nbIndividuals = 100,
+                                              ATC_Tree_UpperBound_2024, FAERS_myopathy,
+                                              num_thread = 2, diversity = T,
+                                              p_mutation = 0.2, alpha = 1.5)
+```
+
+It is now possible to compute the p-value of each found solutions
+
+```{r}
+## We put the estimation of risk distribution of each cocktails size in a list
+distribution_list <- list(estimated_distribution_size1_300ksteps_t500)
+
+p_values <- p_value_genetic_results(distribution_list, genetic_algorithm_results)
+p_values
+```

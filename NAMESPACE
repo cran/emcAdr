@@ -1,0 +1,5 @@
+useDynLib(emcAdr, .registration=TRUE)
+importFrom(Rcpp, evalCpp)
+importFrom("stats", "density", "quantile")
+importFrom("utils", "View")
+exportPattern("^[[:alpha:]]+")
