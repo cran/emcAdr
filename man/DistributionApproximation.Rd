@@ -52,7 +52,7 @@ representing the number of risks =  (index-1)/ 10
 - Outstanding_score : An array of the score greater than max_score,
 - Best_cocktails : the nbResults bests cocktails encountered during the run.
 - Best_scores : Score corresponding to the bestCocktails.
-- FilteredDistribution : Distribution containing score for cocktails taken by at
+- Filtered_score_distribution : Distribution containing score for cocktails taken by at
 least beta patients.
 - Best_cocktails_beta : the nbResults bests cocktails taken by at least beta patients
 encountered during the run.

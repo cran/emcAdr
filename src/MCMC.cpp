@@ -336,7 +336,8 @@ Individual type2Mutation(const Individual& indiv, int treeSize, const std::pair<
   return {prevMedic,indiv.getTemperature()};
 }
 
-Individual crossoverMutation(const Individual& indiv1, const Individual& indiv2,const Rcpp::DataFrame& ATCtree,
+Individual crossoverMutation(const Individual& indiv1, const Individual& indiv2,
+                             const Rcpp::DataFrame& ATCtree,
                              int selectedNode, int upperBound){
   std::vector<int> newMedi{};
   newMedi.reserve(indiv1.getMedications().size() + indiv2.getMedications().size());

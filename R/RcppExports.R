@@ -113,6 +113,38 @@ compute_hypergeom_on_list <- function(cocktails, ATCtree, observations, num_thre
     .Call(`_emcAdr_compute_hypergeom_on_list`, cocktails, ATCtree, observations, num_thread)
 }
 
+#'Function used to compute the Hypergeometric score on a cocktail
+#'
+#'@param cocktail : A cocktail in the form of vector of integers (ATC index)
+#'@param upperBounds : ATC tree  upper bound of the DFS (without the root)
+#'@param ADRCount : number of patient experiencing ADR in dataset
+#'@param observationsADR : observation of the ADR for each patients
+#'(a vector containing the ADR on which we want to compute the risk distribution)
+#'@param observationsMedication : observation of the drug intake for each patients
+#' on which we want to compute the risk distribution
+#'@param num_thread : Number of thread to run in parallel if openMP is available, 1 by default
+#' 
+#'@return Hypergeometric score of the "cocktail" parameter
+#'@examples
+#'\donttest{
+#' data("ATC_Tree_UpperBound_2024")
+#' data("FAERS_myopathy")
+#' 
+#' ADRCount = sum(FAERS_myopathy$patientADR)
+#' cocktail = c(561, 904)
+#' 
+#' Hypergeom_of_cocktail = compute_hypergeom_cocktail(cocktail = cocktail,
+#'                               upperBounds = ATC_Tree_UpperBound_2024$upperBound,
+#'                               ADRCount =  ADRCount,
+#'                               observationsADR = FAERS_myopathy$patientADR,
+#'                               observationsMedication = FAERS_myopathy$patientATC,
+#'                               num_thread=8)
+#'}
+#'@export
+compute_hypergeom_cocktail <- function(cocktail, upperBounds, ADRCount, observationsADR, observationsMedication, num_thread = 1L) {
+    .Call(`_emcAdr_compute_hypergeom_cocktail`, cocktail, upperBounds, ADRCount, observationsADR, observationsMedication, num_thread)
+}
+
 #' Used to add the p_value to each cocktail of a csv_file that is an
 #' output of the genetic algorithm
 #' @param distribution_outputs A list of distribution of cocktails of different sizes
@@ -235,6 +267,8 @@ csv_to_population <- function(ATC_name, filename, sep = ";") {
 #' a vector of index of the ATC tree ex: c(ATC_index(drug1), ATC_index(drugs2))
 #' @param ATC_name the ATC_name column of the ATC tree
 #' @param lines A string vector of drugs cocktail in the form "drug1:drug2:...:drug_n"
+#' @param last_element A boolean to indicate whether we are matching the drug to 
+#' the first matching occurrence in the tree or the last one. Default is false
 #' @return An R List that can be used by other algorithms (e.g. clustering algorithm)
 #' @examples
 #' \donttest{
@@ -245,8 +279,8 @@ csv_to_population <- function(ATC_name, filename, sep = ";") {
 #'                               string_list)
 #' }
 #' @export
-string_list_to_int_cocktails <- function(ATC_name, lines) {
-    .Call(`_emcAdr_string_list_to_int_cocktails`, ATC_name, lines)
+string_list_to_int_cocktails <- function(ATC_name, lines, last_element = FALSE) {
+    .Call(`_emcAdr_string_list_to_int_cocktails`, ATC_name, lines, last_element)
 }
 
 #' Function used to convert integer cocktails (like the one outputed by the distributionApproximation function)
@@ -266,6 +300,30 @@ string_list_to_int_cocktails <- function(ATC_name, lines) {
 #' @export
 int_cocktail_to_string_cocktail <- function(cocktails, ATC_name) {
     .Call(`_emcAdr_int_cocktail_to_string_cocktail`, cocktails, ATC_name)
+}
+
+#' Filter out drug cocktails with high-level ATC classifications
+#' 
+#' This function iterates through a collection of drug combinations (cocktails) and filters out 
+#' those that have a ratio of "high-level" nodes (ATC codes with length <= 3) exceeding 
+#' the specified threshold. This is useful for removing overly generic drug categories 
+#' from results.
+#'
+#' @param solutions A \code{Rcpp::DataFrame} containing the results to filter. Must include columns: 
+#'   "score", "RR", "p_value", "n.patient.taking.C", "n.patient.taking.C.and.having.AE", and "Cocktail".
+#' @param ATC_name A vector of strings containing the ATC codes/names used for mapping.
+#' @param ATC_length An integer vector where each element represents the length (hierarchy level) 
+#'   of the corresponding ATC code in \code{ATC_name}.
+#' @param find_last_occurence Logical. If \code{true} (default), the mapping logic will look for 
+#'   the last occurrence of a drug name in the reference list.
+#' @param max_height_ratio A double (default 0.5) representing the maximum allowable proportion 
+#'   of high-level nodes (length <= 3) in a cocktail. Cocktails exceeding this ratio are removed.
+#'
+#' @return A \code{Rcpp::DataFrame} with the same columns as \code{solutions}, containing only 
+#'   the cocktails that met the \code{max_height_ratio} criteria.
+#' @export
+remove_higher_cocktails <- function(solutions, ATC_name, ATC_length, find_last_occurence = TRUE, max_height_ratio = .5) {
+    .Call(`_emcAdr_remove_higher_cocktails`, solutions, ATC_name, ATC_length, find_last_occurence, max_height_ratio)
 }
 
 #'The MCMC method that runs the random walk on a single cocktail in order to estimate the distribution of score among cocktails of size Smax.
@@ -293,7 +351,7 @@ int_cocktail_to_string_cocktail <- function(cocktails, ATC_name) {
 #' - Outstanding_score : An array of the score greater than max_score,
 #' - Best_cocktails : the nbResults bests cocktails encountered during the run.
 #' - Best_scores : Score corresponding to the bestCocktails.
-#' - FilteredDistribution : Distribution containing score for cocktails taken by at
+#' - Filtered_score_distribution : Distribution containing score for cocktails taken by at
 #' least beta patients.
 #' - Best_cocktails_beta : the nbResults bests cocktails taken by at least beta patients
 #' encountered during the run.
@@ -595,5 +653,38 @@ get_dissimilarity_from_txt_file <- function(filename, ATCtree, normalization = T
 #'}
 get_dissimilarity_from_cocktail_list <- function(cocktails, ATCtree, normalization = TRUE) {
     .Call(`_emcAdr_get_dissimilarity_from_cocktail_list`, cocktails, ATCtree, normalization)
+}
+
+#' Generate Matrix for Drug Combinations
+#' 
+#' This function creates a logical data frame where each column represents a 
+#' specific sub-combination of drugs derived from a given "cocktail." For each 
+#' patient in the input data, it indicates (TRUE/FALSE) whether they were 
+#' taking that specific combination based on the ATC hierarchy.
+#'
+#' @param cocktail An integer vector of drug indices representing the full 
+#'   combination to be analyzed.
+#' @param upperBound An integer vector defining the ATC tree hierarchy bounds.
+#' @param data A \code{Rcpp::DataFrame} containing patient records. It must 
+#'   include a column \code{"patientATC"} which is a list of integer vectors 
+#'   representing the drugs each patient is taking.
+#'
+#' @return A \code{Rcpp::DataFrame} where:
+#' \itemize{
+#'   \item Each column corresponds to a sub-combination of the input \code{cocktail}.
+#'   \item Each row corresponds to a patient in the input \code{data}.
+#'   \item Values are boolean indicators (represented as integers/logicals in R).
+#' }
+#' 
+#' @details 
+#' The function first generates all possible non-empty power-set combinations of the 
+#' \code{cocktail} (e.g., for \eqn{\{1, 2\}}, it generates \eqn{\{1\}, \{2\}, \{1, 2\}}). 
+#'
+#' @note The column names of the resulting data frame are strings of comma-separated 
+#' drug indices (e.g., "888,659,").
+#'
+#' @export
+combination_data_frame <- function(cocktail, upperBound, data) {
+    .Call(`_emcAdr_combination_data_frame`, cocktail, upperBound, data)
 }
 

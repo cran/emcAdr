@@ -4,11 +4,12 @@ R package implementing an Evolutionary Monte-Carlo Markov Chain algorithm (an ad
 
 *Supervisor : Mr. Birmele Etienne*
 
-## Install the package using the *.tar.gz* file
+## Install the package via CRAN repository
 
-First of all you have to clone the emcAdr GitHub repository which is available here. Then you can install the package using the following command in the R console :
+You can simply install the package by using the following command:
+
 ```
-install.packages("~/path/to/emcAdr/package_src/emcAdr_1.0.tar.gz", repos = NULL, type = "source")
+install.packages('emcAr')
 ```
 
 ## Get the modified ATC tree (containing every medications)

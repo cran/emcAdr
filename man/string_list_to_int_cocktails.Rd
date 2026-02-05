@@ -5,12 +5,15 @@
 \title{Function used to convert a string vector of drugs in form "drug1:drug2" to 
 a vector of index of the ATC tree ex: c(ATC_index(drug1), ATC_index(drugs2))}
 \usage{
-string_list_to_int_cocktails(ATC_name, lines)
+string_list_to_int_cocktails(ATC_name, lines, last_element = FALSE)
 }
 \arguments{
 \item{ATC_name}{the ATC_name column of the ATC tree}
 
 \item{lines}{A string vector of drugs cocktail in the form "drug1:drug2:...:drug_n"}
+
+\item{last_element}{A boolean to indicate whether we are matching the drug to 
+the first matching occurrence in the tree or the last one. Default is false}
 }
 \value{
 An R List that can be used by other algorithms (e.g. clustering algorithm)

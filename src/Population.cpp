@@ -419,10 +419,12 @@ void Population::clear(){
 
 double Population::getMean() const{
   const auto size = static_cast<double>(individuals_.size());
-  return std::accumulate(individuals_.begin(), individuals_.end(),
-                         0.0, [](double& a, const std::pair<double,Individual>& b){
+  if (size == 0) return 0.0;
+  
+  return std::accumulate(individuals_.begin(), individuals_.end(), 0.0, 
+                         [](double a, const std::pair<double, Individual>& b) {
                            return a + b.first;
-                           }) / size;
+                         }) / size;
 }
 
 int Population::bestIndividual() const{

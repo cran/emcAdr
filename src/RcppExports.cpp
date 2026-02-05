@@ -74,6 +74,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// compute_hypergeom_cocktail
+double compute_hypergeom_cocktail(const std::vector<int>& cocktail, const std::vector<int>& upperBounds, int ADRCount, const Rcpp::LogicalVector& observationsADR, const std::vector<std::vector<int>>& observationsMedication, int num_thread);
+RcppExport SEXP _emcAdr_compute_hypergeom_cocktail(SEXP cocktailSEXP, SEXP upperBoundsSEXP, SEXP ADRCountSEXP, SEXP observationsADRSEXP, SEXP observationsMedicationSEXP, SEXP num_threadSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type cocktail(cocktailSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type upperBounds(upperBoundsSEXP);
+    Rcpp::traits::input_parameter< int >::type ADRCount(ADRCountSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::LogicalVector& >::type observationsADR(observationsADRSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<int>>& >::type observationsMedication(observationsMedicationSEXP);
+    Rcpp::traits::input_parameter< int >::type num_thread(num_threadSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_hypergeom_cocktail(cocktail, upperBounds, ADRCount, observationsADR, observationsMedication, num_thread));
+    return rcpp_result_gen;
+END_RCPP
+}
 // p_value_csv_file
 void p_value_csv_file(const std::vector<Rcpp::List>& distribution_outputs, const std::string& filename, bool filtred_distribution, const std::string& sep);
 RcppExport SEXP _emcAdr_p_value_csv_file(SEXP distribution_outputsSEXP, SEXP filenameSEXP, SEXP filtred_distributionSEXP, SEXP sepSEXP) {
@@ -130,14 +146,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // string_list_to_int_cocktails
-Rcpp::List string_list_to_int_cocktails(const std::vector<std::string>& ATC_name, const std::vector<std::string>& lines);
-RcppExport SEXP _emcAdr_string_list_to_int_cocktails(SEXP ATC_nameSEXP, SEXP linesSEXP) {
+Rcpp::List string_list_to_int_cocktails(const std::vector<std::string>& ATC_name, const std::vector<std::string>& lines, bool last_element);
+RcppExport SEXP _emcAdr_string_list_to_int_cocktails(SEXP ATC_nameSEXP, SEXP linesSEXP, SEXP last_elementSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::vector<std::string>& >::type ATC_name(ATC_nameSEXP);
     Rcpp::traits::input_parameter< const std::vector<std::string>& >::type lines(linesSEXP);
-    rcpp_result_gen = Rcpp::wrap(string_list_to_int_cocktails(ATC_name, lines));
+    Rcpp::traits::input_parameter< bool >::type last_element(last_elementSEXP);
+    rcpp_result_gen = Rcpp::wrap(string_list_to_int_cocktails(ATC_name, lines, last_element));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -150,6 +167,21 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::vector<std::vector<int>>& >::type cocktails(cocktailsSEXP);
     Rcpp::traits::input_parameter< const std::vector<std::string>& >::type ATC_name(ATC_nameSEXP);
     rcpp_result_gen = Rcpp::wrap(int_cocktail_to_string_cocktail(cocktails, ATC_name));
+    return rcpp_result_gen;
+END_RCPP
+}
+// remove_higher_cocktails
+Rcpp::DataFrame remove_higher_cocktails(const Rcpp::DataFrame& solutions, const std::vector<std::string>& ATC_name, const std::vector<int>& ATC_length, const bool find_last_occurence, const double max_height_ratio);
+RcppExport SEXP _emcAdr_remove_higher_cocktails(SEXP solutionsSEXP, SEXP ATC_nameSEXP, SEXP ATC_lengthSEXP, SEXP find_last_occurenceSEXP, SEXP max_height_ratioSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::DataFrame& >::type solutions(solutionsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::string>& >::type ATC_name(ATC_nameSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type ATC_length(ATC_lengthSEXP);
+    Rcpp::traits::input_parameter< const bool >::type find_last_occurence(find_last_occurenceSEXP);
+    Rcpp::traits::input_parameter< const double >::type max_height_ratio(max_height_ratioSEXP);
+    rcpp_result_gen = Rcpp::wrap(remove_higher_cocktails(solutions, ATC_name, ATC_length, find_last_occurence, max_height_ratio));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -314,6 +346,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// combination_data_frame
+Rcpp::DataFrame combination_data_frame(const std::vector<int>& cocktail, const std::vector<int>& upperBound, const Rcpp::DataFrame& data);
+RcppExport SEXP _emcAdr_combination_data_frame(SEXP cocktailSEXP, SEXP upperBoundSEXP, SEXP dataSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type cocktail(cocktailSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type upperBound(upperBoundSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::DataFrame& >::type data(dataSEXP);
+    rcpp_result_gen = Rcpp::wrap(combination_data_frame(cocktail, upperBound, data));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_emcAdr_ATCtoNumeric", (DL_FUNC) &_emcAdr_ATCtoNumeric, 2},
@@ -321,12 +366,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_emcAdr_OutsandingScoreToDistribution", (DL_FUNC) &_emcAdr_OutsandingScoreToDistribution, 2},
     {"_emcAdr_compute_RR_on_list", (DL_FUNC) &_emcAdr_compute_RR_on_list, 4},
     {"_emcAdr_compute_hypergeom_on_list", (DL_FUNC) &_emcAdr_compute_hypergeom_on_list, 4},
+    {"_emcAdr_compute_hypergeom_cocktail", (DL_FUNC) &_emcAdr_compute_hypergeom_cocktail, 6},
     {"_emcAdr_p_value_csv_file", (DL_FUNC) &_emcAdr_p_value_csv_file, 4},
     {"_emcAdr_p_value_genetic_results", (DL_FUNC) &_emcAdr_p_value_genetic_results, 3},
     {"_emcAdr_p_value_cocktails", (DL_FUNC) &_emcAdr_p_value_cocktails, 6},
     {"_emcAdr_csv_to_population", (DL_FUNC) &_emcAdr_csv_to_population, 3},
-    {"_emcAdr_string_list_to_int_cocktails", (DL_FUNC) &_emcAdr_string_list_to_int_cocktails, 2},
+    {"_emcAdr_string_list_to_int_cocktails", (DL_FUNC) &_emcAdr_string_list_to_int_cocktails, 3},
     {"_emcAdr_int_cocktail_to_string_cocktail", (DL_FUNC) &_emcAdr_int_cocktail_to_string_cocktail, 2},
+    {"_emcAdr_remove_higher_cocktails", (DL_FUNC) &_emcAdr_remove_higher_cocktails, 5},
     {"_emcAdr_DistributionApproximation", (DL_FUNC) &_emcAdr_DistributionApproximation, 11},
     {"_emcAdr_GeneticAlgorithm", (DL_FUNC) &_emcAdr_GeneticAlgorithm, 12},
     {"_emcAdr_trueDistributionDrugs", (DL_FUNC) &_emcAdr_trueDistributionDrugs, 6},
@@ -337,6 +384,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_emcAdr_get_dissimilarity_from_genetic_results", (DL_FUNC) &_emcAdr_get_dissimilarity_from_genetic_results, 3},
     {"_emcAdr_get_dissimilarity_from_txt_file", (DL_FUNC) &_emcAdr_get_dissimilarity_from_txt_file, 3},
     {"_emcAdr_get_dissimilarity_from_cocktail_list", (DL_FUNC) &_emcAdr_get_dissimilarity_from_cocktail_list, 3},
+    {"_emcAdr_combination_data_frame", (DL_FUNC) &_emcAdr_combination_data_frame, 3},
     {NULL, NULL, 0}
 };
 
